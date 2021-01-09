@@ -1,3 +1,17 @@
+### 1.4.1
+* (#31) fix duplicated onLaunch onResume
+* (#37) add possibility to disable firebase core 
+
+### 1.4.0
+* (#32) add unregister method
+* (#24) add support for foreground alerts
+* (#15) add support for actions
+
+### 1.3.1
+* documentation & project structure cleanup
+
+### 1.3.0
+* upgraded firebase to 7.0.0
 
 ### 1.2.0
 * upgraded firebase to 6.0.16
