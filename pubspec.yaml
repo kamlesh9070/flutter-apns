@@ -14,7 +14,7 @@ dependencies:
     git:
       url: https://github.com/kamlesh9070/flutterfire
       path: packages/firebase_messaging
-      ref: recall_delete
+      ref: flutter_apns_issue
       #path: D:\Projects\Github projects\Flutter\Notification_Projects\akflutterfire\packages\firebase_messaging
       #ref: akfb
 
