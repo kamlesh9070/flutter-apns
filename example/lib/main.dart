@@ -1,4 +1,4 @@
-import 'package:flutter_apns/apns.dart';
+import 'package:flutter_apns/flutter_apns.dart';
 import 'package:flutter/material.dart';
 
 import 'storage.dart';
@@ -15,12 +15,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final connector = createPushConnector();
+  final PushConnector connector = createPushConnector();
 
-  @override
-  void initState() {
-    super.initState();
-
+  Future<void> _register() async {
+    final connector = this.connector;
     connector.configure(
       onLaunch: (data) => onPush('onLaunch', data),
       onResume: (data) => onPush('onResume', data),
@@ -31,6 +29,35 @@ class _MyAppState extends State<MyApp> {
       print('Token ${connector.token.value}');
     });
     connector.requestNotificationPermissions();
+
+    if (connector is ApnsPushConnector) {
+      connector.shouldPresent = (x) => Future.value(true);
+      connector.setNotificationCategories([
+        UNNotificationCategory(
+          identifier: 'MEETING_INVITATION',
+          actions: [
+            UNNotificationAction(
+              identifier: 'ACCEPT_ACTION',
+              title: 'Accept',
+              options: UNNotificationActionOptions.values,
+            ),
+            UNNotificationAction(
+              identifier: 'DECLINE_ACTION',
+              title: 'Decline',
+              options: [],
+            ),
+          ],
+          intentIdentifiers: [],
+          options: UNNotificationCategoryOptions.values,
+        ),
+      ]);
+    }
+  }
+
+  @override
+  void initState() {
+    _register();
+    super.initState();
   }
 
   @override
@@ -40,20 +67,49 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: AnimatedBuilder(
-          animation: storage,
-          builder: (contexxt, _) {
-            return Text(storage.content);
-          },
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Token:'),
+              ValueListenableBuilder(
+                valueListenable: connector.token,
+                builder: (context, data, __) {
+                  return SelectableText('$data');
+                },
+              ),
+              FlatButton(
+                child: Text('Register'),
+                onPressed: _register,
+              ),
+              FlatButton(
+                child: Text('Unregister'),
+                onPressed: connector.unregister,
+              ),
+              AnimatedBuilder(
+                animation: storage,
+                builder: (context, _) {
+                  return Text(storage.content);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-Future<dynamic> onPush(String name, Map<String, dynamic> data) {
-  storage.append('$name: $data');
-  return Future.value();
+Future<dynamic> onPush(String name, Map<String, dynamic> payload) {
+  storage.append('$name: $payload');
+
+  final action = UNNotificationAction.getIdentifier(payload);
+
+  if (action == 'MEETING_INVITATION') {
+    // do something
+  }
+
+  return Future.value(true);
 }
 
 Future<dynamic> _onBackgroundMessage(Map<String, dynamic> data) =>
